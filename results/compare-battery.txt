@@ -1,0 +1,21 @@
+== objective by category (correct/total)
+cat          native        tr3       exl3
+code           4/ 4       4/ 4       4/ 4
+instr          4/ 4       4/ 4       4/ 4
+know           5/ 6       5/ 6       5/ 6
+longctx        1/ 1       1/ 1       1/ 1
+math           5/ 7       6/ 7       6/ 7
+reason         5/ 5       5/ 5       5/ 5
+TOTAL         24/27      25/27      25/27
+
+== items where a quant disagrees with native (objective)
+  m_work     native=F tr3=P exl3=P
+
+== mean top-1 token agreement vs native (all items)
+  tr3: 0.603  (n=30)
+  exl3: 0.466  (n=30)
+
+== mean generated-token logprob (higher=more confident)
+  native: -0.100
+  tr3: -0.084
+  exl3: -0.084
