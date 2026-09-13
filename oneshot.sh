@@ -20,11 +20,17 @@ MODEL_HOST="/home/keyspark/models/$MODEL_NAME"      # on .3; exported over NFS t
 REPO="$(cd "$(dirname "$0")" && pwd)"
 log(){ echo "[$(date +%T)] $*"; }
 
-# 1) engine image on every node (pull from GHCR, tag to the local name the launcher uses)
+# 1) engine image on every node (pull from GHCR, tag to the local name the launcher uses).
+#    The GHCR package is private by default -> authenticate. Set GHCR_USER + GHCR_TOKEN
+#    (a token with read:packages), or the script falls back to `gh auth token`.
+GHCR_USER="${GHCR_USER:-drowzeys}"
+GHCR_TOKEN="${GHCR_TOKEN:-$(gh auth token 2>/dev/null)}"
 for n in "${NODES[@]}"; do
   log "image on $n"
-  ssh "$n" "docker image inspect $IMAGE_LOCAL >/dev/null 2>&1 || { docker pull $IMAGE_REMOTE && docker tag $IMAGE_REMOTE $IMAGE_LOCAL; }" \
-    || { log "FAILED image on $n"; exit 1; }
+  ssh "$n" "docker image inspect $IMAGE_LOCAL >/dev/null 2>&1 && exit 0
+    [ -n '$GHCR_TOKEN' ] && echo '$GHCR_TOKEN' | docker login ghcr.io -u '$GHCR_USER' --password-stdin >/dev/null 2>&1
+    docker pull $IMAGE_REMOTE && docker tag $IMAGE_REMOTE $IMAGE_LOCAL" \
+    || { log "FAILED image on $n (private GHCR pkg? set GHCR_TOKEN, or make the package public in its GitHub Settings)"; exit 1; }
 done
 
 # 2) weights on .3 (hf download; shards 1,2,43-48 + small files are release-identical and can be hardlinked)
