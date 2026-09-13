@@ -31,7 +31,7 @@ Current-serve knobs: `TP=4, GMU 0.80, max-model-len 1048576, max-num-seqs 8, CUD
 - **1M-token context**, KV pool ~4,492,902 tokens => **~4 concurrent full-1M requests (C=4)** on four Sparks.
 - Model weights **69.2 GiB/rank** (vs 81.6 GiB/rank for the native release pack), which is what frees the KV room.
 - **1M needle-in-haystack: PASS** (retrieval at depth 0.5 in a >1M-token prompt).
-- Quality matches the full-precision model on an objective battery; closer to native than the uniform EXL3 3.5 bpw pack (below).
+- Quality matches the shipped checkpoint on an objective battery; tracks it closer than the uniform EXL3 3.5 bpw pack (below).
 
 ## Results
 
@@ -79,14 +79,16 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 | TR3-Hybrid | 69.21 | 4,190,217 | 300K | 1M |
 | **TR3-Hybrid (bm8 — CURRENT SERVE)** | 69.2 | 4,492,902 | **1M** | **1M** |
 
-### Intelligence / quality (30-item battery, greedy; native = full-precision reference)
+### Intelligence / quality (30-item battery, greedy; native = reference)
 
 | metric | Native | TR3-Hybrid (old) | EXL3 3.5bpw |
 |---|---|---|---|
 | objective correct | 24/27 | 25/27 | 25/27 |
-| top-1 token agreement vs native | 1.000 | 0.603 | 0.466 |
+| token-sequence agreement vs native (aligned) | 1.000 | **0.780** | 0.689 |
 
-All three are tied on task correctness. TR3-Hybrid tracks the full-precision model **closer** than EXL3 3.5 bpw (higher top-1 agreement), consistent with the design intent of keeping the hardest experts in native precision.
+> **Reference model.** DeepSeek shipped V4.1-Flash as an **MXFP4-experts / MXFP8** checkpoint (`expert_dtype fp4`, `weight_block_size [32,32]`, `ue8m0` scales); there is no public BF16 original. That shipped checkpoint is what we call **native** and is the **source both quants were made from** — so it is the ground-truth reference here, not a lossless BF16 model. TR3's 64 keep-experts/layer are **bit-identical** to native's MXFP4 experts; its tail is K3-trellis quantized from native. The agreement number is therefore "how faithfully the quant reproduces the shipped model's greedy token choices," measured with cascade-robust alignment (a single early token offset would otherwise misalign the rest; the naive position-aligned score understated TR3 at 0.60).
+
+All three are tied on task correctness. TR3-Hybrid reproduces the shipped checkpoint **closer** than EXL3 3.5 bpw (0.78 vs 0.69 aligned agreement), partly because 64 experts/layer are bit-identical to native.
 
 ## Why each config
 
