@@ -8,8 +8,9 @@
 #   - Engine image pulled from GHCR; plugin + patches come from this repo's serve/ dir (bind-mounted).
 #   - Weights from HuggingFace: drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid (~410 GB).
 #
-# Usage:  bash oneshot.sh            # full: pull image on all nodes, fetch weights if missing, launch
-#         SKIP_WEIGHTS=1 bash oneshot.sh   # weights already on disk
+# Usage:  bash oneshot.sh                 # stock TR3
+#         SKIP_WEIGHTS=1 bash oneshot.sh
+#         ABLIT=1 bash oneshot.sh         # overlay HF L10-35 wo_b, then serve
 set -u
 IMAGE_REMOTE="ghcr.io/drowzeys/vllm-dsv41-overlay5-e47aa:serving-node1"
 IMAGE_LOCAL="vllm-dsv41:overlay5-e47aa"          # tag the launcher expects
@@ -17,6 +18,10 @@ NODES=(10.100.10.1 10.100.10.2 10.100.10.3 10.100.10.5)
 MODEL_HF="drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid"
 MODEL_NAME="DeepSeek-V4.1-Flash-TR3-Hybrid"
 MODEL_HOST="/home/keyspark/models/$MODEL_NAME"      # on .3; exported over NFS to the others
+ABLIT="${ABLIT:-0}"
+ABLIT_HF="drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed"
+ABLIT_NAME="DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated"
+ABLIT_HOST="/home/keyspark/models/$ABLIT_NAME"
 REPO="$(cd "$(dirname "$0")" && pwd)"
 log(){ echo "[$(date +%T)] $*"; }
 
@@ -42,6 +47,23 @@ if [ "${SKIP_WEIGHTS:-0}" != 1 ]; then
 fi
 ssh 10.100.10.3 "test -f '$MODEL_HOST/model-00048-of-00048.safetensors'" || { log "checkpoint incomplete on .3"; exit 1; }
 
+# 2b) optional Keys ablit overlay (universal L10-35 wo_b from HF — not a second 410G pack)
+if [ "$ABLIT" = 1 ]; then
+  log "ABLIT=1 overlay $ABLIT_HF onto stock TR3 -> $ABLIT_HOST"
+  ssh 10.100.10.3 "export PATH=\$HOME/.local/bin:\$PATH
+    mkdir -p /tmp/dsv41-wo-b-ablit '$ABLIT_HOST'
+    hf download '$ABLIT_HF' --include 'wo_b_l10_35.safetensors' --include 'apply_wo_b_graft.py' --local-dir /tmp/dsv41-wo-b-ablit
+    test -f /tmp/dsv41-wo-b-ablit/wo_b_l10_35.safetensors || exit 2
+    docker run --rm --network none --entrypoint python3 \
+      -v /home/keyspark/models:/home/keyspark/models \
+      -v /tmp/dsv41-wo-b-ablit:/ablit:ro \
+      $IMAGE_LOCAL \
+      /ablit/apply_wo_b_graft.py --src '$MODEL_HOST' --wo-b /ablit/wo_b_l10_35.safetensors --dst '$ABLIT_HOST'" \
+    || { log "ABLIT overlay FAILED (accept the gated HF repo first: $ABLIT_HF)"; exit 1; }
+  MODEL_NAME="$ABLIT_NAME"
+  MODEL_HOST="$ABLIT_HOST"
+fi
+
 # 3) stage the launcher + plugin + patches from this repo onto every node (the launcher bind-mounts serve/)
 for n in "${NODES[@]}"; do
   ssh "$n" "mkdir -p ~/tr3-serve"
@@ -49,11 +71,12 @@ for n in "${NODES[@]}"; do
 done
 
 # 4) launch the CURRENT-SERVE config (cluster.py fans out to all ranks)
-log "launching TR3-Hybrid (bm8+fast_math) @1M on 4 Sparks"
+log "launching ${MODEL_NAME} (bm8+fast_math) @1M on 4 Sparks"
 cd ~/tr3-serve 2>/dev/null || cd "$REPO/serve"
 IMAGE="$IMAGE_LOCAL" PATCH_SET=patch-upstream-boot10 TR3=1 CACHE_TAG=tr3 \
   EAGER=0 SPEC=1 TEXT_ONLY=0 EXTRA=0 GMU=0.80 MAXLEN=1048576 SEQS=8 BATCH=8192 \
   TR3_FAST_MATH=1 TR3_DECODE_BLOCK_M=8 TR3_PREFILL_BLOCK_M=64 \
+  MODEL_DIR="$MODEL_NAME" \
   python3 cluster.py start
 
 # 5) wait for readiness, then smoke test

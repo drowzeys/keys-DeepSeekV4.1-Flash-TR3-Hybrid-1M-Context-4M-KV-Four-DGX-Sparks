@@ -13,8 +13,9 @@ Everything needed to bring the **current-serve** config up in one load:
 ```bash
 git clone https://github.com/drowzeys/keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks
 cd keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks
-bash oneshot.sh            # pulls the GHCR engine image on all 4 nodes, fetches weights, launches
-#   SKIP_WEIGHTS=1 bash oneshot.sh   # if the checkpoint is already on disk
+bash oneshot.sh            # stock TR3-Hybrid
+#   SKIP_WEIGHTS=1 bash oneshot.sh
+#   ABLIT=1 bash oneshot.sh          # overlay Keys L10-35 wo_b from HF, then serve that
 ```
 
 - **Engine image (prebuilt):** `ghcr.io/drowzeys/vllm-dsv41-overlay5-e47aa:serving-node1` (vLLM `dsv41-feat`@e47aa780b + DSpark + TR3/B12X plugin, GB10/sm121). Serves the native and TR3-Hybrid checkpoints.
@@ -28,7 +29,15 @@ Current-serve knobs: `TP=4, GMU 0.80, max-model-len 1048576, max-num-seqs 8, CUD
 
 **Hermes:** do not type in Telegram until you have run the warmup — [HERMES.md](HERMES.md). `oneshot.sh` does this after SERVING.
 
-**Abliterated / cybersecurity-unleashed pack** (Keys L10–35 anchored, 32/32 + cyber 22/22): [ABLIT.md](ABLIT.md) · HF [`drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated-Cybersecurity-Unleashed`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated-Cybersecurity-Unleashed) (gated, automatic approval).
+**Abliteration (optional):** `ABLIT=1 bash oneshot.sh` downloads the ~1.1 GB universal overlay from [`drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed) (gated, automatic approval) and splices L10–35 `wo_b` onto **stock TR3** already on disk. Same overlay applies to native and EXL3 3.5 bpw — see [ABLIT.md](ABLIT.md).
+
+**Original stock bases**
+
+| Pack | Hugging Face |
+|---|---|
+| Native | [`deepseek-ai/DeepSeek-V4.1-Flash`](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash) |
+| EXL3 3.5 bpw Pollard | [`bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard`](https://huggingface.co/bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard) |
+| Our TR3-Hybrid | [`drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid) |
 
 ## Headline
 
