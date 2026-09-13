@@ -1,0 +1,31 @@
+--- references/brandon-v84-layer-98/opt/infernal-invocation/b12x/b12x/moe/_shared/kernels/w4a16/kernel.py	2026-08-27 17:22:35.000000000 -0400
++++ hybrid-port/b12x/moe/_shared/kernels/w4a16/kernel.py	2026-09-12 06:16:23.325232709 -0400
+@@ -6145,10 +6145,13 @@
+                 raise ValueError(
+                     "intermediate_rotation is only supported for trellis_t256"
+                 )
+-            if not is_gated or self.activation_is_swigluoai or self.has_swiglu_limit:
++            # keyspark 2026-09-12: clamped SwiGLU (DeepSeek V4.1 swiglu_limit=10)
++            # is applied on the un-rotated gate/up values inside the rotation
++            # epilogue, exactly where the reference applies it.
++            if not is_gated or self.activation_is_swigluoai or self.activation_is_situ:
+                 raise ValueError(
+-                    "intermediate_rotation requires unclamped gated silu or situ "
+-                    "(no swiglu limit/oai)"
++                    "intermediate_rotation requires gated silu (optionally "
++                    "clamped) - no situ/oai"
+                 )
+             if int(intermediate_size) % 128 != 0:
+                 raise ValueError(
+@@ -7941,6 +7944,11 @@
+                 iu2_1 = uh1 * svu1
+                 iu2_2 = uh2 * svu2
+                 iu2_3 = uh3 * svu3
++                # swiglu_limit clamp on the true (un-rotated) gate/up, no-op if unset
++                ig2_0, iu2_0 = self._clamp_swiglu_inputs(ig2_0, iu2_0)
++                ig2_1, iu2_1 = self._clamp_swiglu_inputs(ig2_1, iu2_1)
++                ig2_2, iu2_2 = self._clamp_swiglu_inputs(ig2_2, iu2_2)
++                ig2_3, iu2_3 = self._clamp_swiglu_inputs(ig2_3, iu2_3)
+                 # silu(gate) * up, then pre-scale suh_down
+                 d2 = isz + isz
+                 sd0 = rot_scales_flat[s_base + d2 + Int32(0)].to(cutlass.Float32)

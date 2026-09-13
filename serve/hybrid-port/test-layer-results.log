@@ -1,0 +1,13 @@
+=== layer 3 rank 0 MIX
+{"T": 5, "kind": "decode", "rel_err": 0.00241, "cos": 0.9999973, "nonfinite": 0, "graph_maxdiff": 0.0, "eager_ms": 780.89, "graph_ms": 0.873, "ok": true}
+{"T": 6, "kind": "decode", "rel_err": 0.00234, "cos": 0.9999974, "nonfinite": 0, "graph_maxdiff": 0.0, "eager_ms": 2.55, "graph_ms": 0.8, "ok": true}
+{"T": 48, "kind": "decode", "rel_err": 0.00229, "cos": 0.9999976, "nonfinite": 0, "graph_maxdiff": 0.0, "eager_ms": 7.29, "graph_ms": 4.111, "ok": true}
+{"T": 128, "kind": "prefill", "rel_err": 0.00229, "cos": 0.9999976, "nonfinite": 0, "graph_maxdiff": 0.0, "eager_ms": 1242.26, "graph_ms": 6.403, "ok": true}
+{"T": 700, "kind": "prefill", "rel_err": 0.00232, "cos": 0.9999976, "nonfinite": 0, "graph_maxdiff": 0.0, "eager_ms": 9.95, "graph_ms": 7.857, "ok": true}
+{"T": 2048, "kind": "prefill", "rel_err": 0.00227, "cos": 0.9999977, "nonfinite": 0, "graph_maxdiff": 0.0, "eager_ms": 76.05, "graph_ms": 12.806, "ok": true}
+RESULT PASS
+=== layer 20 rank 3 MIX
+layer 20 rank 3: 87 tail + 9 keep experts
+{"T": 6, "kind": "decode", "rel_err": 0.00233, "cos": 0.9999975, "nonfinite": 0, "graph_maxdiff": 0.0, "eager_ms": 753.54, "graph_ms": 1.042, "ok": true}
+{"T": 128, "kind": "prefill", "rel_err": 0.00237, "cos": 0.9999975, "nonfinite": 0, "graph_maxdiff": 0.0, "eager_ms": 1194.97, "graph_ms": 6.201, "ok": true}
+RESULT PASS

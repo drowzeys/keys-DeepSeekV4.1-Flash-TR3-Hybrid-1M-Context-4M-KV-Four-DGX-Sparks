@@ -6,6 +6,24 @@ The serving checkpoint is the **TR3-Hybrid** quant: most routed experts are **EX
 
 > **Weights:** https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid
 
+## Quick start (one-shot, four DGX Sparks)
+
+Everything needed to bring the **current-serve** config up in one load:
+
+```bash
+git clone https://github.com/drowzeys/keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks
+cd keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks
+bash oneshot.sh            # pulls the GHCR engine image on all 4 nodes, fetches weights, launches
+#   SKIP_WEIGHTS=1 bash oneshot.sh   # if the checkpoint is already on disk
+```
+
+- **Engine image (prebuilt):** `ghcr.io/drowzeys/vllm-dsv41-overlay5-e47aa:latest` (vLLM `dsv41-feat`@e47aa780b + DSpark + TR3/B12X plugin, GB10/sm121). Serves the native and TR3-Hybrid checkpoints.
+- **Weights:** https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid (~410 GB).
+- **Plugin + patches + launcher:** in [`serve/`](serve/) (bind-mounted by `serve/serve-rank.sh`; `cluster.py` fans out to the four ranks).
+- Edit the node IPs / model path at the top of `oneshot.sh` for a different cluster.
+
+Current-serve knobs: `TP=4, GMU 0.80, max-model-len 1048576, max-num-seqs 8, CUDA graphs FULL_AND_PIECEWISE, DSpark k=5, fast_math on, decode block_m 8, prefill block_m 64`.
+
 ## Headline
 
 - **1M-token context**, KV pool ~4,492,902 tokens => **~4 concurrent full-1M requests (C=4)** on four Sparks.
@@ -19,7 +37,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 
 ### Single-stream decode tok/s (C=1)
 
-| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (bm8, 1M — CURRENT SERVE) |
+| category | Native MXFP4 | TR3-Hybrid (old) | EXL3 3.5bpw | TR3-Hybrid (bm8, 1M — CURRENT SERVE) |
 |---|---|---|---|---|
 | prose | 27.4 | 23.8 | 30.7 | 26.0 |
 | list | 41.8 | 36.0 | 43.7 | 42.0 |
@@ -30,7 +48,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 
 ### Aggregate throughput tok/s (C=4, wall-clock incl. TTFT)
 
-| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (bm8, 1M — CURRENT SERVE) |
+| category | Native MXFP4 | TR3-Hybrid (old) | EXL3 3.5bpw | TR3-Hybrid (bm8, 1M — CURRENT SERVE) |
 |---|---|---|---|---|
 | prose | 53.6 | 49.9 | 68.3 | 56.7 |
 | list | 70.6 | 91.3 | 111.0 | 101.7 |
@@ -41,7 +59,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 
 ### Aggregate throughput tok/s (C=8)
 
-| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (bm8, 1M — CURRENT SERVE) |
+| category | Native MXFP4 | TR3-Hybrid (old) | EXL3 3.5bpw | TR3-Hybrid (bm8, 1M — CURRENT SERVE) |
 |---|---|---|---|---|
 | prose | 73.3 | 79.8 | 88.1 | 75.8 |
 | list | 117.0 | 127.8 | 149.4 | 140.9 |
@@ -61,7 +79,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 
 ### Intelligence / quality (30-item battery, greedy; native = full-precision reference)
 
-| metric | Native | TR3-Hybrid | EXL3 3.5bpw |
+| metric | Native | TR3-Hybrid (old) | EXL3 3.5bpw |
 |---|---|---|---|
 | objective correct | 24/27 | 25/27 | 25/27 |
 | top-1 token agreement vs native | 1.000 | 0.603 | 0.466 |
