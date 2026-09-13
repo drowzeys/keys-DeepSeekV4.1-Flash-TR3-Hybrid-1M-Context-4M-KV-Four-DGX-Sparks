@@ -1,4 +1,4 @@
-# DeepSeek-V4.1-Flash TR3-Hybrid — 1M Context, ~4M-token KV pool, Four DGX Sparks
+# DeepSeek-V4.1-Flash TR3-Hybrid — 1M Context, ~4M-token KV pool, Four DGX Sparks, with abliterated option
 
 Serving **[deepseek-ai/DeepSeek-V4.1-Flash](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash)** (763B, MoE, sparse-MLA + Engram) on **four NVIDIA DGX Spark (GB10, 128 GB unified)** over a 200G ConnectX-7 fabric, tensor-parallel 4, with **CUDA graphs + DSpark speculative decoding + native vision + tool calling + 1M-token context**.
 

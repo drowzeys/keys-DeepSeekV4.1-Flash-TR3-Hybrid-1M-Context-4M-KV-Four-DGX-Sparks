@@ -1,4 +1,4 @@
-# DeepSeek-V4.1-Flash TR3-Hybrid — 1M Context, ~4M-token KV pool, Four DGX Sparks
+# DeepSeek-V4.1-Flash TR3-Hybrid — 1M Context, ~4M-token KV pool, Four DGX Sparks, with abliterated option
 
 Serving **[deepseek-ai/DeepSeek-V4.1-Flash](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash)** (763B, MoE, sparse-MLA + Engram) on **four NVIDIA DGX Spark (GB10, 128 GB unified)** over a 200G ConnectX-7 fabric, tensor-parallel 4, with **CUDA graphs + DSpark speculative decoding + native vision + tool calling + 1M-token context**.
 
@@ -11,8 +11,8 @@ The serving checkpoint is the **TR3-Hybrid** quant: most routed experts are **EX
 Everything needed to bring the **current-serve** config up in one load:
 
 ```bash
-git clone https://github.com/drowzeys/keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks
-cd keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks
+git clone https://github.com/drowzeys/keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks-with-abliterated-option
+cd keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks-with-abliterated-option
 bash oneshot.sh            # stock TR3-Hybrid
 #   SKIP_WEIGHTS=1 bash oneshot.sh
 #   ABLIT=1 bash oneshot.sh          # overlay Keys L10-35 wo_b from HF, then serve that

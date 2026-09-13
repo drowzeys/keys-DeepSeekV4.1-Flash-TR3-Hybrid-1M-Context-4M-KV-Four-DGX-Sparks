@@ -66,5 +66,5 @@ sudo systemctl restart hermes-gateway   # this fleet
 
 Same Hermes prep. Serve
 `MODEL_DIR=DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated` (or the HF pack
-[`drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated-Cybersecurity-Unleashed`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated-Cybersecurity-Unleashed)).
+[`drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed)).
 Recipe: [ABLIT.md](ABLIT.md).
