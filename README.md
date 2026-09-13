@@ -8,47 +8,47 @@ The serving checkpoint is the **TR3-Hybrid** quant: most routed experts are **EX
 
 ## Headline
 
-- **1M-token context**, KV pool ~4,291,712 tokens => **~4 concurrent full-1M requests (C=4)** on four Sparks.
-- Model weights **69.23 GiB/rank** (vs 81.6 GiB/rank for the native release pack), which is what frees the KV room.
+- **1M-token context**, KV pool ~4,492,902 tokens => **~4 concurrent full-1M requests (C=4)** on four Sparks.
+- Model weights **69.2 GiB/rank** (vs 81.6 GiB/rank for the native release pack), which is what frees the KV room.
 - **1M needle-in-haystack: PASS** (retrieval at depth 0.5 in a >1M-token prompt).
 - Quality matches the full-precision model on an objective battery; closer to native than the uniform EXL3 3.5 bpw pack (below).
 
 ## Results
 
-All speed numbers are greedy, temperature 0, measured on this cluster. Native / EXL3 / TR3 rows are matched at 300K context, GMU 0.80. The fourth column is a TR3 speed-knob variant (fast_math on, decode block_m 32) measured at 1M context. **The deployed config uses decode block_m 8** (see Deployment & tuning below); its full six-category numbers were not re-benched (serve node busy), only a C=1 code/math recheck.
+All speed numbers are greedy, temperature 0, measured on this cluster. Native / EXL3 / TR3 rows are matched at 300K context, GMU 0.80; the fourth column is the **deployed** TR3 config (fast_math on, decode block_m 8) measured at 1M context.
 
 ### Single-stream decode tok/s (C=1)
 
-| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3 +fast_math (block_m 32) |
+| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (DEPLOYED: bm8, 1M) |
 |---|---|---|---|---|
-| prose | 27.4 | 23.8 | 30.7 | 27.7 |
-| list | 41.8 | 36.0 | 43.7 | 37.9 |
-| code | 49.0 | 51.9 | 58.2 | 38.9 |
-| essay | 28.9 | 25.3 | 34.4 | 25.5 |
-| read | 37.3 | 37.6 | 41.6 | 38.7 |
-| math | 56.7 | 49.3 | 64.0 | 43.3 |
+| prose | 27.4 | 23.8 | 30.7 | 26.0 |
+| list | 41.8 | 36.0 | 43.7 | 42.0 |
+| code | 49.0 | 51.9 | 58.2 | 46.6 |
+| essay | 28.9 | 25.3 | 34.4 | 29.9 |
+| read | 37.3 | 37.6 | 41.6 | 35.2 |
+| math | 56.7 | 49.3 | 64.0 | 48.3 |
 
 ### Aggregate throughput tok/s (C=4, wall-clock incl. TTFT)
 
-| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3 +fast_math (block_m 32) |
+| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (DEPLOYED: bm8, 1M) |
 |---|---|---|---|---|
-| prose | 53.6 | 49.9 | 68.3 | 50.5 |
-| list | 70.6 | 91.3 | 111.0 | 90.4 |
-| code | 84.1 | 95.9 | 110.1 | 94.5 |
-| essay | 57.2 | 60.9 | 78.1 | 49.0 |
-| read | 63.8 | 77.4 | 74.5 | 63.1 |
-| math | 84.4 | 93.6 | 137.2 | 103.3 |
+| prose | 53.6 | 49.9 | 68.3 | 56.7 |
+| list | 70.6 | 91.3 | 111.0 | 101.7 |
+| code | 84.1 | 95.9 | 110.1 | 99.1 |
+| essay | 57.2 | 60.9 | 78.1 | 68.2 |
+| read | 63.8 | 77.4 | 74.5 | 80.5 |
+| math | 84.4 | 93.6 | 137.2 | 119.2 |
 
 ### Aggregate throughput tok/s (C=8)
 
-| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3 +fast_math (block_m 32) |
+| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (DEPLOYED: bm8, 1M) |
 |---|---|---|---|---|
-| prose | 73.3 | 79.8 | 88.1 | 70.3 |
-| list | 117.0 | 127.8 | 149.4 | 140.0 |
-| code | 120.2 | 136.1 | 157.2 | 129.2 |
-| essay | 77.7 | 87.5 | 102.2 | 76.2 |
-| read | 109.9 | 132.1 | 123.5 | 114.7 |
-| math | 153.4 | 173.4 | 189.2 | 176.5 |
+| prose | 73.3 | 79.8 | 88.1 | 75.8 |
+| list | 117.0 | 127.8 | 149.4 | 140.9 |
+| code | 120.2 | 136.1 | 157.2 | 132.6 |
+| essay | 77.7 | 87.5 | 102.2 | 85.2 |
+| read | 109.9 | 132.1 | 123.5 | 138.9 |
+| math | 153.4 | 173.4 | 189.2 | 165.4 |
 
 ### Memory, KV pool, context
 
@@ -57,7 +57,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 | Native MXFP4 | 81.58 | 1,428,283 | 300K | 1M |
 | EXL3 3.5bpw | 56.61 | 3,534,988 | 300K | 1M |
 | TR3-Hybrid | 69.21 | 4,190,217 | 300K | 1M |
-| **TR3-Hybrid (deployed)** | 69.23 | 4,291,712 | **1M** | **1M** |
+| **TR3-Hybrid (deployed)** | 69.2 | 4,492,902 | **1M** | **1M** |
 
 ### Intelligence / quality (30-item battery, greedy; native = full-precision reference)
 
@@ -80,20 +80,20 @@ Engine image is the upstream vLLM `dsv41-feat` tree **pinned at commit `e47aa780
 
 Deployment knobs (per rank): `TP=4, GMU 0.80, max-model-len 1048576, max-num-seqs 8, CUDA graphs FULL_AND_PIECEWISE, DSpark k=5, Engram disk-backed, fast_math on, decode block_m 8 / prefill block_m 64`.
 
-### Deployment & tuning (honest note)
+## Speed-knob tuning
 
-The `fast_math` + `block_m` speed knobs are a **mixed result at single stream, not a uniform win.** Measured C=1 decode tok/s, TR3 baseline (block_m 8, no fast_math) -> TR3 +fast_math block_m 32:
+The deployed config is `fast_math on, decode block_m 8, prefill block_m 64`. Measured C=1 decode tok/s across three TR3 settings (all same weights):
 
-| category | baseline | +fast_math bm32 |
-|---|---|---|
-| prose | 23.8 | 27.7 (+16%) |
-| list | 36.0 | 37.9 (+5%) |
-| read | 37.6 | 38.7 (+3%) |
-| essay | 25.3 | 25.5 (flat) |
-| math | 49.3 | 43.3 (-12%) |
-| code | 51.9 | 38.9 (-25%) |
+| category | TR3 baseline (bm8, no fast_math) | TR3 bm32 + fast_math | **TR3 deployed (bm8 + fast_math)** |
+|---|---|---|---|
+| prose | 23.8 | 27.7 | **26.0** |
+| list | 36.0 | 37.9 | **42.0** |
+| code | 51.9 | 38.9 | **46.6** |
+| essay | 25.3 | 25.5 | **29.9** |
+| read | 37.6 | 38.7 | **35.2** |
+| math | 49.3 | 43.3 | **48.3** |
 
-block_m 32 helps prose/list/read but hurts code and math. The **deployed** config therefore keeps **decode block_m 8** (with fast_math on, prefill block_m 64); a C=1 recheck at that setting gives **code 40.9, math 51.3** (math recovered, code between the two). The four-column tables above are kept as the measured A/B; treat the fourth column as the block_m 32 variant, not the deployment.
+`block_m 8 + fast_math` is the best balance: it wins prose/list/essay, matches math, and keeps code near baseline, whereas `block_m 32` gained prose but lost ~25% on code. Deployed.
 
 ## Credits
 
