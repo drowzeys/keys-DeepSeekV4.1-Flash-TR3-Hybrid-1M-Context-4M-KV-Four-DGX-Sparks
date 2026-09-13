@@ -95,18 +95,17 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 | TR3-Hybrid | 69.21 | 4,190,217 | 300K | 1M |
 | **TR3-Hybrid (bm8 — CURRENT SERVE)** | 69.2 | 4,492,902 | **1M** | **1M** |
 
-### Intelligence / quality (30-item battery, greedy; native = reference)
+### Intelligence / quality (objective battery + 66.6K-position KLD; native = reference)
 
 | metric | Native | TR3-Hybrid (old) | EXL3 3.5bpw |
 |---|---|---|---|
 | objective correct | 24/27 | 25/27 | 25/27 |
-| token-sequence agreement vs native (aligned) | 1.000 | **0.780** | 0.689 |
 | KL vs native (nats), 66.6K teacher-forced positions ↓ | 0 | **0.032** | 0.057 |
 | top-1 agreement, teacher-forced (66.6K pos) | 1.000 | **0.984** | 0.976 |
 
-> **Reference model.** DeepSeek shipped V4.1-Flash as an **MXFP4-experts / MXFP8** checkpoint (`expert_dtype fp4`, `weight_block_size [32,32]`, `ue8m0` scales); there is no public BF16 original. That shipped checkpoint is what we call **native** and is the **source both quants were made from** — so it is the ground-truth reference here, not a lossless BF16 model. TR3's 64 keep-experts/layer are **bit-identical** to native's MXFP4 experts; its tail is K3-trellis quantized from native. The agreement number is therefore "how faithfully the quant reproduces the shipped model's greedy token choices," measured with cascade-robust alignment (a single early token offset would otherwise misalign the rest; the naive position-aligned score understated TR3 at 0.60).
+> **Reference model.** DeepSeek shipped V4.1-Flash as an **MXFP4-experts / MXFP8** checkpoint (`expert_dtype fp4`, `weight_block_size [32,32]`, `ue8m0` scales); there is no public BF16 original. That shipped checkpoint is what we call **native** and is the **source both quants were made from** — so it is the ground-truth reference here, not a lossless BF16 model. TR3's 64 keep-experts/layer are **bit-identical** to native's MXFP4 experts; its tail is K3-trellis quantized from native. The KL and top-1 figures below measure how faithfully each quant reproduces native's per-token distribution.
 
-The **KL divergence** is the rigorous precision metric, measured to brandonmusic's spec: native's (the teacher's) logits over a representative **32-window / 2047-token corpus (66,599 teacher-forced positions, >50K)**, top-20 truncation, KL(native ‖ quant) averaged per position — no alignment artifact. **TR3's 0.032 nats is ~44% below EXL3's 0.057**, and both track native tightly (top-1 >97.5%). (An earlier 274-position smoke test read 0.259/0.343; that sample was far too small and its numbers swung — hence the large-sample re-run. For scale, a third-party GLM-5.3 EXL3 KLD was ~0.102 nats.) All three are tied on task correctness. TR3-Hybrid reproduces the shipped checkpoint **closer** than EXL3 3.5 bpw (0.78 vs 0.69 aligned agreement), partly because 64 experts/layer are bit-identical to native.
+The **KL divergence** is the rigorous precision metric, measured to brandonmusic's spec: native's (the teacher's) logits over a representative **32-window / 2047-token corpus (66,599 teacher-forced positions, >50K)**, top-20 truncation, KL(native ‖ quant) averaged per position — no alignment artifact. **TR3's 0.032 nats is ~44% below EXL3's 0.057**, and both track native tightly (top-1 >97.5%). (An earlier 274-position smoke test read 0.259/0.343; that sample was far too small and its numbers swung — hence the large-sample re-run. For scale, a third-party GLM-5.3 EXL3 KLD was ~0.102 nats.) All three are tied on task correctness (objective battery). On the 66.6K-position KLD, TR3-Hybrid reproduces the shipped checkpoint **closer** than EXL3 3.5 bpw — **KL 0.032 vs 0.057, top-1 0.984 vs 0.976** — partly because 64 experts/layer are bit-identical to native.
 
 ## Why each config
 
