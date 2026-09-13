@@ -10,6 +10,7 @@ Pick **your original stock**. Do **not** mix experts (do not graft TR3 experts o
 | **A — Native** | [`deepseek-ai/DeepSeek-V4.1-Flash`](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash) | `~/models/DeepSeek-V4.1-Flash-Abliterated` | native MXFP4 MoE, `TR3=0` |
 | **B — EXL3 3.5 bpw** | [`bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard`](https://huggingface.co/bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard) | `~/models/DeepSeek-V4.1-Flash-EXL3-Pollard-Abliterated` | Pollard EXL3 MoE, `TR3=0` |
 | **C — Our TR3-Hybrid** | [`drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid) | `~/models/DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated` | TR3 plugin, `ABLIT=1 bash oneshot.sh` |
+| **D — Mia 2× Spark EXL3 2.9 bpw** | [`Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw) + [2× Spark recipe](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks) | — | **Not this sidecar** (attention is EXL3 K=5). Use recipe **B** instead. |
 
 GPU memory utilization **≤ 0.85**. Shared overlay download:
 
@@ -110,3 +111,22 @@ python3 serve/apply_wo_b_graft.py \
 After overlay, `dst/ABLIT_META.json` should show `"n_edited": 52` (26 layers × weight+scale) or `"n_edited": 26` depending on count of `.weight` only in older prints — current script counts both. L0–9 / L36–39 / MTP / experts must remain hardlinked or byte-identical to `--src`.
 
 Hermes: [HERMES.md](HERMES.md) (`max_tokens` 12288, `reasoning_effort: false`, warmup before first Telegram turn).
+
+---
+
+## D — MiaAI-Lab 2× DGX Spark EXL3 2.9 bpw — **do not overlay**
+
+Kit: [MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks)  
+Weights: [`Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw) (39 shards, Engram from native 47+48)
+
+This sidecar **cannot** be applied. Their `files/exl3_k_map.json` sets `"attn_default": 5` — **attention is EXL3 K=5 mul1 trellis**, not official FP8 `wo_b`. Native leftovers are embed / norms / routers / vision / Engram k,q / indexer, not `layers.*.attn.wo_b.weight`. `apply_wo_b_graft.py` looks for FP8 e4m3 `(5120, 8192)` + UE8M0 scale; grafting into packed trellis would corrupt the checkpoint.
+
+Same 40-layer / DSpark 37–39 family, so a *future* path would be: dequant EXL3 attn `wo_b` → project Keys 5120-d direction → requant mul1 K=5. That is **not** this overlay.
+
+**What to run instead on 2× Spark if you want this ablit:** recipe **B** ([bot-lab-21 Pollard 3.5 bpw](https://huggingface.co/bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard)), which still has native FP8 `wo_b` (verified byte-identical to native and TR3). Or recipe **A** native. Then point that dest at your own 2× serve — not Mia's `start.sh` EXL3-attn image.
+
+Fail-fast check:
+
+```bash
+bash recipes/check-mia-exl3.sh /path/to/Mia-AiLab-EXL3-2.9bpw
+```
