@@ -17,7 +17,8 @@ bash oneshot.sh            # pulls the GHCR engine image on all 4 nodes, fetches
 #   SKIP_WEIGHTS=1 bash oneshot.sh   # if the checkpoint is already on disk
 ```
 
-- **Engine image (prebuilt):** `ghcr.io/drowzeys/vllm-dsv41-overlay5-e47aa:latest` (vLLM `dsv41-feat`@e47aa780b + DSpark + TR3/B12X plugin, GB10/sm121). Serves the native and TR3-Hybrid checkpoints.
+- **Engine image (prebuilt):** `ghcr.io/drowzeys/vllm-dsv41-overlay5-e47aa:serving-node1` (vLLM `dsv41-feat`@e47aa780b + DSpark + TR3/B12X plugin, GB10/sm121). Serves the native and TR3-Hybrid checkpoints.
+  - Tag `serving-node1` is **byte-identical to the image serving the champion on node .1** (digest `ad5cc20c`); `:latest` is an equivalent head-node build of the same tree.
   - The package is **private** on first push; `oneshot.sh` authenticates with `gh auth token` (or set `GHCR_TOKEN`). To allow anonymous pulls, flip it to public once at `github.com/users/drowzeys/packages/container/vllm-dsv41-overlay5-e47aa/settings`.
 - **Weights:** https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid (~410 GB).
 - **Plugin + patches + launcher:** in [`serve/`](serve/) (bind-mounted by `serve/serve-rank.sh`; `cluster.py` fans out to the four ranks).

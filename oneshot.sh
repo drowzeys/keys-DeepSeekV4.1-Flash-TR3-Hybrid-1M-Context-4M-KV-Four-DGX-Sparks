@@ -11,7 +11,7 @@
 # Usage:  bash oneshot.sh            # full: pull image on all nodes, fetch weights if missing, launch
 #         SKIP_WEIGHTS=1 bash oneshot.sh   # weights already on disk
 set -u
-IMAGE_REMOTE="ghcr.io/drowzeys/vllm-dsv41-overlay5-e47aa:latest"
+IMAGE_REMOTE="ghcr.io/drowzeys/vllm-dsv41-overlay5-e47aa:serving-node1"
 IMAGE_LOCAL="vllm-dsv41:overlay5-e47aa"          # tag the launcher expects
 NODES=(10.100.10.1 10.100.10.2 10.100.10.3 10.100.10.5)
 MODEL_HF="drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid"
