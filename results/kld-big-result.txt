@@ -1,0 +1,8 @@
+reference = native-big
+
+model    mean_KL(nats)  top1_agree  positions
+native-big        0.0000       1.000          -
+tr3-big         0.0318       0.984      66599
+exl3-big        0.0569       0.976      66599
+
+Lower KL = closer to the shipped reference. top1_agree here is exact (fixed forced text).
