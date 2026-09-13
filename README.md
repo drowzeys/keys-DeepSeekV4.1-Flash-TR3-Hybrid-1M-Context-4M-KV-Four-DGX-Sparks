@@ -29,7 +29,7 @@ Current-serve knobs: `TP=4, GMU 0.80, max-model-len 1048576, max-num-seqs 8, CUD
 
 **Hermes:** do not type in Telegram until you have run the warmup — [HERMES.md](HERMES.md). `oneshot.sh` does this after SERVING.
 
-**Abliteration (optional):** `ABLIT=1 bash oneshot.sh` downloads the ~1.1 GB universal overlay from [`drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed) (gated, automatic approval) and splices L10–35 `wo_b` onto **stock TR3** already on disk. Same overlay applies to native and EXL3 3.5 bpw — see [ABLIT.md](ABLIT.md).
+**Abliteration (optional):** three install recipes in **[INSTALL.md](INSTALL.md)** — native / EXL3 3.5 bpw / our TR3. Four-Spark TR3: `ABLIT=1 bash oneshot.sh`. Overlay: [`drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed) (gated, automatic approval).
 
 **Original stock bases**
 

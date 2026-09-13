@@ -16,6 +16,8 @@ Not a second 410 GB checkpoint. Hugging Face:
 
 Attention `wo_b` is byte-identical on all three stocks. Overlay L10–35 only; experts stay that pack.
 
+Full copy-paste for **native**, **EXL3 3.5 bpw**, and **our TR3**: **[INSTALL.md](INSTALL.md)**. Wrappers: `recipes/apply-native.sh`, `recipes/apply-exl3.sh`, `recipes/apply-tr3.sh`.
+
 ## Four-Spark TR3 (this repo)
 
 ```bash
