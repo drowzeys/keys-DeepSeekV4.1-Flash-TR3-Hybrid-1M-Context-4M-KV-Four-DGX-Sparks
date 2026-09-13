@@ -26,6 +26,10 @@ bash oneshot.sh            # pulls the GHCR engine image on all 4 nodes, fetches
 
 Current-serve knobs: `TP=4, GMU 0.80, max-model-len 1048576, max-num-seqs 8, CUDA graphs FULL_AND_PIECEWISE, DSpark k=5, fast_math on, decode block_m 8, prefill block_m 64`.
 
+**Hermes:** do not type in Telegram until you have run the warmup — [HERMES.md](HERMES.md). `oneshot.sh` does this after SERVING.
+
+**Abliterated / cybersecurity-unleashed pack** (Keys L10–35 anchored, 32/32 + cyber 22/22): [ABLIT.md](ABLIT.md) · HF [`drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated-Cybersecurity-Unleashed`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated-Cybersecurity-Unleashed) (gated, automatic approval).
+
 ## Headline
 
 - **1M-token context**, KV pool ~4,492,902 tokens => **~4 concurrent full-1M requests (C=4)** on four Sparks.

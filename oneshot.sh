@@ -65,4 +65,7 @@ done
 curl -sf -m 5 http://10.100.10.1:8000/v1/models >/dev/null 2>&1 \
   && python3 functest.py http://10.100.10.1:8000 2>&1 | tail -2 \
   || { log "NOT serving after wait; check: python3 cluster.py logs"; exit 1; }
+log "Hermes-shaped warmup (kills first-prompt 20-200s TTFT)"
+python3 "$REPO/serve/hermes-warmup.py" --api http://10.100.10.1:8000/v1 || python3 hermes-warmup.py --api http://10.100.10.1:8000/v1 || true
 log "done. model=deepseek-v4.1-flash endpoint=http://10.100.10.1:8000"
+log "Hermes: see HERMES.md — max_tokens 12288, reasoning_effort: false, /new after point"
