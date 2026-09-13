@@ -19,7 +19,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 
 ### Single-stream decode tok/s (C=1)
 
-| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (DEPLOYED: bm8, 1M) |
+| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (bm8, 1M — CURRENT SERVE) |
 |---|---|---|---|---|
 | prose | 27.4 | 23.8 | 30.7 | 26.0 |
 | list | 41.8 | 36.0 | 43.7 | 42.0 |
@@ -30,7 +30,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 
 ### Aggregate throughput tok/s (C=4, wall-clock incl. TTFT)
 
-| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (DEPLOYED: bm8, 1M) |
+| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (bm8, 1M — CURRENT SERVE) |
 |---|---|---|---|---|
 | prose | 53.6 | 49.9 | 68.3 | 56.7 |
 | list | 70.6 | 91.3 | 111.0 | 101.7 |
@@ -41,7 +41,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 
 ### Aggregate throughput tok/s (C=8)
 
-| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (DEPLOYED: bm8, 1M) |
+| category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (bm8, 1M — CURRENT SERVE) |
 |---|---|---|---|---|
 | prose | 73.3 | 79.8 | 88.1 | 75.8 |
 | list | 117.0 | 127.8 | 149.4 | 140.9 |
@@ -57,7 +57,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 | Native MXFP4 | 81.58 | 1,428,283 | 300K | 1M |
 | EXL3 3.5bpw | 56.61 | 3,534,988 | 300K | 1M |
 | TR3-Hybrid | 69.21 | 4,190,217 | 300K | 1M |
-| **TR3-Hybrid (deployed)** | 69.2 | 4,492,902 | **1M** | **1M** |
+| **TR3-Hybrid (bm8 — CURRENT SERVE)** | 69.2 | 4,492,902 | **1M** | **1M** |
 
 ### Intelligence / quality (30-item battery, greedy; native = full-precision reference)
 
@@ -84,7 +84,7 @@ Deployment knobs (per rank): `TP=4, GMU 0.80, max-model-len 1048576, max-num-seq
 
 The deployed config is `fast_math on, decode block_m 8, prefill block_m 64`. Measured C=1 decode tok/s across three TR3 settings (all same weights):
 
-| category | TR3 baseline (bm8, no fast_math) | TR3 bm32 + fast_math | **TR3 deployed (bm8 + fast_math)** |
+| category | TR3 baseline (bm8, no fast_math) | TR3 bm32 + fast_math | **TR3 bm8 + fast_math (CURRENT SERVE)** |
 |---|---|---|---|
 | prose | 23.8 | 27.7 | **26.0** |
 | list | 36.0 | 37.9 | **42.0** |
