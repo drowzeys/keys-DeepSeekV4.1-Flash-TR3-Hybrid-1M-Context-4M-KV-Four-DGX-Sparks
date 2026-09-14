@@ -27,7 +27,7 @@ bash oneshot.sh            # stock TR3-Hybrid
 - **Plugin + patches + launcher:** in [`serve/`](serve/) (bind-mounted by `serve/serve-rank.sh`; `cluster.py` fans out to the four ranks).
 - Edit the node IPs / model path at the top of `oneshot.sh` for a different cluster.
 
-Current-serve knobs: `TP=4, GMU 0.80, max-model-len 1048576, max-num-seqs 8, CUDA graphs FULL_AND_PIECEWISE, DSpark k=5, fast_math on, decode block_m 8, prefill block_m 64`.
+Current-serve knobs: `TP=4, GMU 0.81, max-model-len 1048576, max-num-seqs 8, max-num-batched-tokens 2048, CUDA graphs FULL_AND_PIECEWISE, DSpark k=5, fast_math on, decode block_m 8, prefill block_m 64`.
 
 **Hermes:** do not type in Telegram until you have run the warmup — [HERMES.md](HERMES.md). `oneshot.sh` does this after SERVING.
 
@@ -44,9 +44,9 @@ Current-serve knobs: `TP=4, GMU 0.80, max-model-len 1048576, max-num-seqs 8, CUD
 
 ## Headline
 
-- **1M-token context**, KV pool **9,452,923 tokens (8M+ target)** => **~9 concurrent full-1M requests (C=8–9)** on four Sparks.
+- **1M-token context**, KV pool **~8.7M tokens at the deployed GMU 0.81 (8M+ target)**, measured up to **9,452,923 tokens at GMU 0.83** => **~8 concurrent full-1M requests (C=8)** on four Sparks. GMU 0.81 is the deployment setting: it clears 8M while returning ~2 GiB/rank of prefill headroom vs the tight 0.83 max.
 - Model weights **69.2 GiB/rank** (vs 81.6 GiB/rank for the native release pack), which is what frees the KV room.
-- **KV-pool lever:** the pool grew from ~4.5M to **9.45M** by raising `--gpu-memory-utilization` 0.80→0.83 and dropping `--max-num-batched-tokens` 8192→2048 — a smaller prefill chunk shrinks vLLM's activation reserve and hands that memory to the pool. 2048 is the floor with vision on (the multimodal item is 1025 tokens). fp8_ds_mla is the KV-dtype floor for V4.1, so ~12M is the practical pool ceiling at 1M context (and only text-only).
+- **KV-pool lever:** the pool grew from ~4.5M to **9.45M** by dropping `--max-num-batched-tokens` 8192→2048 (a smaller prefill chunk shrinks vLLM's activation reserve and hands that memory to the pool) with `--gpu-memory-utilization` at 0.83. 2048 is the floor with vision on (the multimodal item is 1025 tokens). Because the batch change freed ~14 GiB, **GMU can then be lowered back to 0.81 and still hold ~8.7M** — each 0.01 of GMU is ~0.37M tokens (~1.2 GiB), so 0.81 trades ~0.75M of pool for ~2 GiB/rank more prefill headroom. fp8_ds_mla is the KV-dtype floor for V4.1, so ~12M is the practical pool ceiling at 1M context (and only text-only).
 - **1M needle-in-haystack: PASS** (retrieval at depth 0.5 in a >1M-token prompt).
 - Quality: tied on an objective battery and **KL 0.032 nats vs native over 66.6K teacher-forced positions (~44% below EXL3's 0.057)** — the tightest-tracking quant here.
 
@@ -87,7 +87,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 | read | 109.9 | 132.1 | 123.5 | 138.9 |
 | math | 153.4 | 173.4 | 189.2 | 165.4 |
 
-### Current-serve C1→C8 sweep (8M-pool config: GMU 0.83, batch 2048, DSpark k=5, vision on)
+### Current-serve C1→C8 sweep (batch 2048, DSpark k=5, vision on; measured at the GMU 0.83 max-pool point — decode rate is GMU-independent, so it holds at the deployed 0.81)
 
 Greedy-ish (temp 0.7), short prompts, 256 max tokens, measured on the live 9.45M-pool serve. Per-stream is one request's own decode rate; aggregate is the total across all concurrent streams.
 
@@ -123,9 +123,10 @@ TTFT stayed 0.29–0.59 s across the sweep (read at C8 the only outlier, 1.8 s).
 | EXL3 3.5bpw | 56.61 | 3,534,988 | 300K | 1M |
 | TR3-Hybrid | 69.21 | 4,190,217 | 300K | 1M |
 | TR3-Hybrid (bm8, earlier 4M-pool) | 69.2 | 4,492,902 | 1M | 1M |
-| **TR3-Hybrid (8M-pool — CURRENT SERVE)** | 69.2 | **9,452,923** | **1M** | **1M** |
+| TR3-Hybrid (max pool @ GMU 0.83) | 69.2 | 9,452,923 | 1M | 1M |
+| **TR3-Hybrid (deployed @ GMU 0.81) — CURRENT SERVE** | 69.2 | **~8,700,000** | **1M** | **1M** |
 
-The current-serve pool of **9,452,923 tokens** (9.02× a full 1M request) is measured at **GMU 0.83, `--max-num-batched-tokens` 2048**, vision + tools + graphs + DSpark k=5 all on. That is more than double the earlier 4.5M pool at the same 1M context.
+The deployed config is **GMU 0.81, `--max-num-batched-tokens` 2048** => **~8.7M-token pool** (8M+ target) with ~8 GiB/rank of prefill headroom. Raising GMU to 0.83 reaches the measured max of **9,452,923 tokens** (9.02× a full 1M request) but leaves only ~6 GiB headroom. Both are more than double the earlier 4.5M pool at the same 1M context. Vision + tools + graphs + DSpark k=5 all on.
 
 ### Intelligence / quality (objective battery + 66.6K-position KLD; native = reference)
 
@@ -141,7 +142,7 @@ The **KL divergence** is the rigorous precision metric, measured to brandonmusic
 
 ## Why each config
 
-- **TR3-Hybrid (deployed):** best precision-for-memory on this fabric. Keeps the 64 hardest experts/layer native so quality tracks the full model, while the K3 trellis tail shrinks weights enough for the largest KV pool of the three (**~9.45M tokens => C=8–9 at 1M context**, via GMU 0.83 + `--max-num-batched-tokens` 2048 to free activation reserve into the pool). Chosen serving config.
+- **TR3-Hybrid (deployed):** best precision-for-memory on this fabric. Keeps the 64 hardest experts/layer native so quality tracks the full model, while the K3 trellis tail shrinks weights enough for the largest KV pool of the three (**~8.7M tokens at the deployed GMU 0.81 => C=8 at 1M context**, up to 9.45M at GMU 0.83; `--max-num-batched-tokens` 2048 frees activation reserve into the pool). Chosen serving config.
 - **EXL3 3.5bpw:** fastest single-stream and smallest weights; a uniform Pollard pack. Lower fidelity to native than TR3 on the battery. Excellent when raw throughput and footprint matter most.
 - **Native MXFP4:** the release's own format, the quality reference, but the heavy weights leave only a ~1.4M-token KV pool => far less concurrency/context headroom on 128 GB/node.
 

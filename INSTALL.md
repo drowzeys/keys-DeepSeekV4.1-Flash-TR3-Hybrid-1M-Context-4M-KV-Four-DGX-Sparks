@@ -41,7 +41,7 @@ python3 ~/dsv41-wo-b-ablit/apply_wo_b_graft.py \
 cd serve
 IMAGE=vllm-dsv41:overlay5-e47aa PATCH_SET=patch-upstream-boot10 \
   TR3=0 MODEL_DIR=DeepSeek-V4.1-Flash-Abliterated \
-  GMU=0.83 MAXLEN=1048576 SEQS=8 BATCH=2048 EAGER=0 SPEC=1 \
+  GMU=0.81 MAXLEN=1048576 SEQS=8 BATCH=2048 EAGER=0 SPEC=1 \
   python3 cluster.py start
 ```
 
@@ -69,7 +69,7 @@ python3 ~/dsv41-wo-b-ablit/apply_wo_b_graft.py \
 cd serve
 IMAGE=vllm-dsv41:overlay5-e47aa PATCH_SET=patch-upstream-boot10 \
   TR3=0 MODEL_DIR=DeepSeek-V4.1-Flash-EXL3-Pollard-Abliterated \
-  GMU=0.83 MAXLEN=1048576 SEQS=8 BATCH=2048 EAGER=0 SPEC=1 \
+  GMU=0.81 MAXLEN=1048576 SEQS=8 BATCH=2048 EAGER=0 SPEC=1 \
   python3 cluster.py start
 ```
 

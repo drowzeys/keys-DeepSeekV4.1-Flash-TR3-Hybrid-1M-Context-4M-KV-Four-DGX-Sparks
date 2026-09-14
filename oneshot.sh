@@ -1,6 +1,6 @@
 #!/bin/bash
 # One-shot bring-up of DeepSeek-V4.1-Flash TR3-Hybrid on four DGX Sparks (GB10), the CURRENT-SERVE config:
-#   TR3-Hybrid (bm8 + fast_math), CUDA graphs + DSpark k=5 + vision + tools, 1M context, 8M-token KV pool (9,452,923 measured), C=8-9.
+#   TR3-Hybrid (bm8 + fast_math), CUDA graphs + DSpark k=5 + vision + tools, 1M context, 8M+ KV pool (~8.7M @ GMU 0.81; 9,452,923 measured @ 0.83), C=8.
 #
 # Assumptions (this cluster's topology; edit the vars for yours):
 #   - 4 nodes reachable by ssh: ranks .1/.2/.3/.5 (rank0=.1 serves the API on :8000), 200G fabric GID3.
@@ -74,7 +74,7 @@ done
 log "launching ${MODEL_NAME} (bm8+fast_math) @1M on 4 Sparks"
 cd ~/tr3-serve 2>/dev/null || cd "$REPO/serve"
 IMAGE="$IMAGE_LOCAL" PATCH_SET=patch-upstream-boot10 TR3=1 CACHE_TAG=tr3 \
-  EAGER=0 SPEC=1 TEXT_ONLY=0 EXTRA=0 GMU=0.83 MAXLEN=1048576 SEQS=8 BATCH=2048 \
+  EAGER=0 SPEC=1 TEXT_ONLY=0 EXTRA=0 GMU=0.81 MAXLEN=1048576 SEQS=8 BATCH=2048 \
   TR3_FAST_MATH=1 TR3_DECODE_BLOCK_M=8 TR3_PREFILL_BLOCK_M=64 \
   KERNEL_CONFIG='{"enable_flashinfer_autotune": false}' \
   MODEL_DIR="$MODEL_NAME" \
