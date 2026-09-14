@@ -31,7 +31,7 @@ Current-serve knobs: `TP=4, GMU 0.81, max-model-len 1048576, max-num-seqs 8, max
 
 **Hermes:** do not type in Telegram until you have run the warmup — [HERMES.md](HERMES.md). `oneshot.sh` does this after SERVING.
 
-**Abliteration (optional):** three install recipes in **[INSTALL.md](INSTALL.md)** — native / EXL3 3.5 bpw / our TR3. Four-Spark TR3: `ABLIT=1 bash oneshot.sh`. Overlay: [`drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed) (gated, automatic approval).
+**Abliteration (optional):** four install recipes in **[INSTALL.md](INSTALL.md)** — native / EXL3 3.5 bpw / our TR3 / Mia 2×. Four-Spark TR3: `ABLIT=1 bash oneshot.sh`. Overlay: [`drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed) (gated, automatic approval). Mia 2× helper (instruction-only, their kit stays the runtime): [`keys-DeepSeek-V4.1-Flash-Abliterated-Mia-2x-Spark-EXL3`](https://github.com/drowzeys/keys-DeepSeek-V4.1-Flash-Abliterated-Mia-2x-Spark-EXL3).
 
 **Original stock bases**
 
@@ -40,7 +40,7 @@ Current-serve knobs: `TP=4, GMU 0.81, max-model-len 1048576, max-num-seqs 8, max
 | Native | [`deepseek-ai/DeepSeek-V4.1-Flash`](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash) |
 | EXL3 3.5 bpw Pollard | [`bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard`](https://huggingface.co/bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard) |
 | Our TR3-Hybrid | [`drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid) |
-| Mia 2× Spark EXL3 2.9 bpw | [kit](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks) / [`Mia-AiLab/…-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw) — recipe **D**, EXL3 K=5 sidecar (not FP8) |
+| Mia 2× Spark EXL3 2.9 bpw | [kit](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks) / [`Mia-AiLab/…-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw) — recipe **D**, EXL3 K=5 sidecar (not FP8). Helper: [Mia 2× landing](https://github.com/drowzeys/keys-DeepSeek-V4.1-Flash-Abliterated-Mia-2x-Spark-EXL3) |
 
 ## Headline
 

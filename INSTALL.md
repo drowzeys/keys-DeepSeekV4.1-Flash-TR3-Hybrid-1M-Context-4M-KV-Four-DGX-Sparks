@@ -147,4 +147,4 @@ cd DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks
 ./start.sh
 ```
 
-Wrapper: `recipes/apply-mia-exl3.sh`. Engram stays native (untouched). L0–9 / L36–39 / MTP `wo_b` stay stock EXL3.
+Wrapper: `recipes/apply-mia-exl3.sh`. Instruction-only landing (their kit stays the runtime): [keys-DeepSeek-V4.1-Flash-Abliterated-Mia-2x-Spark-EXL3](https://github.com/drowzeys/keys-DeepSeek-V4.1-Flash-Abliterated-Mia-2x-Spark-EXL3). Engram stays native (untouched). L0–9 / L36–39 / MTP `wo_b` stay stock EXL3.
