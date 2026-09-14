@@ -1,5 +1,21 @@
 # DeepSeek-V4.1-Flash native vLLM on four DGX Sparks (.1/.2/.3/.5) — runbook
 
+## STANDING (2026-09-14) — TR3-Hybrid 1M ctx, 8M+ KV pool (9,452,923 tokens)
+Champion serving config, live on .1:8000. Pool grown from ~4.5M to 9.45M by the activation-reserve lever:
+```
+IMAGE=vllm-dsv41:overlay5-e47aa PATCH_SET=patch-upstream-boot10 TR3=1 CACHE_TAG=tr3 \
+  SERVED_NAME=deepseek-v4.1-flash EAGER=0 SPEC=1 SPEC_K=5 TEXT_ONLY=0 EXTRA=0 \
+  GMU=0.83 MAXLEN=1048576 SEQS=8 BATCH=2048 \
+  TR3_FAST_MATH=1 TR3_DECODE_BLOCK_M=8 TR3_PREFILL_BLOCK_M=64 \
+  CUDAGRAPH_MODE=FULL_AND_PIECEWISE KERNEL_CONFIG='{"enable_flashinfer_autotune": false}' \
+  python3 cluster.py start
+```
+- KV pool 9,452,923 tokens (9.02x a full 1M request), available KV 29.69 GiB/rank. Vision+tools+graphs+DSpark k=5 all on.
+- LEVER: vLLM reserves prefill activation ~ --max-num-batched-tokens. BATCH 8192->2048 + GMU 0.80->0.83 freed ~14 GiB of activation reserve into the pool (KV 15.89->29.69 GiB). BATCH floor is 2048 with vision (mm-item=1025); TEXT_ONLY=1 allows 1025.
+- Ceiling: fp8_ds_mla is the KV-dtype floor for V4.1 (~3.14 KB/token/rank), so ~10.2M with vision at GMU 0.85, ~12M text-only; 12M not reachable at 1M with vision at safe GMU.
+- C1->C8 sweep (short prompts, 256 tok): per-stream C1 math 44.6/code 37.3/prose 22.2; aggregate C8 math 171.3/list 135.8/code 130.2/prose 77.8.
+
+
 Serving as of 2026-09-12 10:08 EDT. Endpoint http://10.100.10.1:8000, model `deepseek-v4.1-flash`,
 OpenAI chat/completions, vision (up to 4 images), tool calling (`deepseek_v41` parsers), DSpark k=5.
 

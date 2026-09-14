@@ -41,7 +41,7 @@ python3 ~/dsv41-wo-b-ablit/apply_wo_b_graft.py \
 cd serve
 IMAGE=vllm-dsv41:overlay5-e47aa PATCH_SET=patch-upstream-boot10 \
   TR3=0 MODEL_DIR=DeepSeek-V4.1-Flash-Abliterated \
-  GMU=0.80 MAXLEN=1048576 SEQS=8 BATCH=8192 EAGER=0 SPEC=1 \
+  GMU=0.83 MAXLEN=1048576 SEQS=8 BATCH=2048 EAGER=0 SPEC=1 \
   python3 cluster.py start
 ```
 
@@ -69,7 +69,7 @@ python3 ~/dsv41-wo-b-ablit/apply_wo_b_graft.py \
 cd serve
 IMAGE=vllm-dsv41:overlay5-e47aa PATCH_SET=patch-upstream-boot10 \
   TR3=0 MODEL_DIR=DeepSeek-V4.1-Flash-EXL3-Pollard-Abliterated \
-  GMU=0.80 MAXLEN=1048576 SEQS=8 BATCH=8192 EAGER=0 SPEC=1 \
+  GMU=0.83 MAXLEN=1048576 SEQS=8 BATCH=2048 EAGER=0 SPEC=1 \
   python3 cluster.py start
 ```
 
@@ -82,8 +82,8 @@ IMAGE=vllm-dsv41:overlay5-e47aa PATCH_SET=patch-upstream-boot10 \
 K3 tail + 64 MXFP4 keeps stay TR3. This is the pack `oneshot.sh` fetches.
 
 ```bash
-git clone https://github.com/drowzeys/keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks-with-abliterated-option
-cd keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-4M-KV-Four-DGX-Sparks-with-abliterated-option
+git clone https://github.com/drowzeys/keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-8M-KV-Four-DGX-Sparks-with-abliterated-option
+cd keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-8M-KV-Four-DGX-Sparks-with-abliterated-option
 
 # stock TR3 + overlay + champion 1M serve (decode block_m=8, FAST_MATH, DSpark k=5)
 ABLIT=1 bash oneshot.sh

@@ -1,4 +1,4 @@
-# DeepSeek-V4.1-Flash TR3-Hybrid — 1M Context, ~4M-token KV pool, Four DGX Sparks, with abliterated option
+# DeepSeek-V4.1-Flash TR3-Hybrid — 1M Context, 8M-token KV pool, Four DGX Sparks, with abliterated option
 
 Serving **[deepseek-ai/DeepSeek-V4.1-Flash](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash)** (763B, MoE, sparse-MLA + Engram) on **four NVIDIA DGX Spark (GB10, 128 GB unified)** over a 200G ConnectX-7 fabric, tensor-parallel 4, with **CUDA graphs + DSpark speculative decoding + native vision + tool calling + 1M-token context**.
 
@@ -8,7 +8,7 @@ The serving checkpoint is the **TR3-Hybrid** quant: most routed experts are **EX
 
 ## Headline
 
-- **1M-token context**, KV pool ~4,291,712 tokens => **~4 concurrent full-1M requests (C=4)** on four Sparks.
+- **1M-token context**, KV pool **9,452,923 tokens (8M+ target)** => **~9 concurrent full-1M requests (C=8-9)** on four Sparks.
 - Model weights **69.23 GiB/rank** (vs 81.6 GiB/rank for the native release pack), which is what frees the KV room.
 - **1M needle-in-haystack: PASS** (retrieval at depth 0.5 in a >1M-token prompt).
 - Quality matches the full-precision model on an objective battery; closer to native than the uniform EXL3 3.5 bpw pack (below).
@@ -28,7 +28,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 | read | 37.3 | 37.6 | 41.6 | 38.7 |
 | math | 56.7 | 49.3 | 64.0 | 43.3 |
 
-### Aggregate throughput tok/s (C=4, wall-clock incl. TTFT)
+### Aggregate throughput tok/s (C=8, wall-clock incl. TTFT)
 
 | category | Native MXFP4 | TR3-Hybrid | EXL3 3.5bpw | TR3-Hybrid (optimized, 1M) |
 |---|---|---|---|---|
@@ -57,7 +57,7 @@ All speed numbers are greedy, temperature 0, measured on this cluster. Native / 
 | Native MXFP4 | 81.58 | 1,428,283 | 300K | 1M |
 | EXL3 3.5bpw | 56.61 | 3,534,988 | 300K | 1M |
 | TR3-Hybrid | 69.21 | 4,190,217 | 300K | 1M |
-| **TR3-Hybrid (deployed)** | 69.23 | 4,291,712 | **1M** | **1M** |
+| **TR3-Hybrid (deployed, 8M-pool)** | 69.2 | 9,452,923 | **1M** | **1M** |
 
 ### Intelligence / quality (30-item battery, greedy; native = full-precision reference)
 
@@ -70,7 +70,7 @@ All three are tied on task correctness. TR3-Hybrid tracks the full-precision mod
 
 ## Why each config
 
-- **TR3-Hybrid (deployed):** best precision-for-memory on this fabric. Keeps the 64 hardest experts/layer native so quality tracks the full model, while the K3 trellis tail shrinks weights enough for the largest KV pool of the three (~4M tokens => C=4 at 1M context). Chosen serving config.
+- **TR3-Hybrid (deployed):** best precision-for-memory on this fabric. Keeps the 64 hardest experts/layer native so quality tracks the full model, while the K3 trellis tail shrinks weights enough for the largest KV pool of the three (~9.45M tokens => C=8-9 at 1M context, via GMU 0.83 + max-num-batched-tokens 2048). Chosen serving config.
 - **EXL3 3.5bpw:** fastest single-stream and smallest weights; a uniform Pollard pack. Lower fidelity to native than TR3 on the battery. Excellent when raw throughput and footprint matter most.
 - **Native MXFP4:** the release's own format, the quality reference, but the heavy weights leave only a ~1.4M-token KV pool => far less concurrency/context headroom on 128 GB/node.
 
