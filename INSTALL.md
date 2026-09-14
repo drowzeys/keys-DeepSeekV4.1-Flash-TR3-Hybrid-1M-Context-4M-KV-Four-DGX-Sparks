@@ -10,7 +10,7 @@ Pick **your original stock**. Do **not** mix experts (do not graft TR3 experts o
 | **A — Native** | [`deepseek-ai/DeepSeek-V4.1-Flash`](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash) | `~/models/DeepSeek-V4.1-Flash-Abliterated` | native MXFP4 MoE, `TR3=0` |
 | **B — EXL3 3.5 bpw** | [`bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard`](https://huggingface.co/bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard) | `~/models/DeepSeek-V4.1-Flash-EXL3-Pollard-Abliterated` | Pollard EXL3 MoE, `TR3=0` |
 | **C — Our TR3-Hybrid** | [`drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid) | `~/models/DeepSeek-V4.1-Flash-TR3-Hybrid-Abliterated` | TR3 plugin, `ABLIT=1 bash oneshot.sh` |
-| **D — Mia 2× Spark EXL3 2.9 bpw** | [`Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw) + [2× Spark recipe](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks) | — | **Not this sidecar** (attention is EXL3 K=5). Use recipe **B** instead. |
+| **D — Mia 2× Spark EXL3 2.9 bpw** | [`Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw) + [2× Spark kit](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks) | `model-ablit/` next to their `model/` | **EXL3 mul1 K=5 sidecar** `mia_exl3_wo_b_l10_35.safetensors` (not the FP8 overlay) |
 
 GPU memory utilization **≤ 0.85**. Shared overlay download:
 
@@ -114,19 +114,37 @@ Hermes: [HERMES.md](HERMES.md) (`max_tokens` 12288, `reasoning_effort: false`, w
 
 ---
 
-## D — MiaAI-Lab 2× DGX Spark EXL3 2.9 bpw — **do not overlay**
+## D — MiaAI-Lab 2× DGX Spark EXL3 2.9 bpw
 
 Kit: [MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks)  
-Weights: [`Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw) (39 shards, Engram from native 47+48)
+Stock weights: [`Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw)
 
-This sidecar **cannot** be applied. Their `files/exl3_k_map.json` sets `"attn_default": 5` — **attention is EXL3 K=5 mul1 trellis**, not official FP8 `wo_b`. Native leftovers are embed / norms / routers / vision / Engram k,q / indexer, not `layers.*.attn.wo_b.weight`. `apply_wo_b_graft.py` looks for FP8 e4m3 `(5120, 8192)` + UE8M0 scale; grafting into packed trellis would corrupt the checkpoint.
-
-Same 40-layer / DSpark 37–39 family, so a *future* path would be: dequant EXL3 attn `wo_b` → project Keys 5120-d direction → requant mul1 K=5. That is **not** this overlay.
-
-**What to run instead on 2× Spark if you want this ablit:** recipe **B** ([bot-lab-21 Pollard 3.5 bpw](https://huggingface.co/bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard)), which still has native FP8 `wo_b` (verified byte-identical to native and TR3). Or recipe **A** native. Then point that dest at your own 2× serve — not Mia's `start.sh` EXL3-attn image.
-
-Fail-fast check:
+Attention is **EXL3 mul1 K=5**, not FP8. Do **not** use `apply_wo_b_graft.py`. Use the **Mia sidecar** (dequant → Keys λ=3.5 project → requant mul1 K=5; roundtrip NMSE ≈ 0.0012).
 
 ```bash
-bash recipes/check-mia-exl3.sh /path/to/Mia-AiLab-EXL3-2.9bpw
+# 1) stock Mia pack (or reuse ./model from their start.sh)
+hf download Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw --local-dir ~/models/DeepSeek-V4.1-Flash-EXL3-2.9bpw
+
+# 2) overlay only (~650 MB)
+hf download drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed \
+  --include "mia_exl3_wo_b_l10_35.safetensors" \
+  --include "apply_mia_exl3_wob.py" \
+  --local-dir ~/dsv41-wo-b-ablit
+
+python3 ~/dsv41-wo-b-ablit/apply_mia_exl3_wob.py \
+  --src ~/models/DeepSeek-V4.1-Flash-EXL3-2.9bpw \
+  --wo-b ~/dsv41-wo-b-ablit/mia_exl3_wo_b_l10_35.safetensors \
+  --dst ~/models/DeepSeek-V4.1-Flash-EXL3-2.9bpw-Abliterated
 ```
+
+**Serve with their kit** — keep `start.sh` / image / Engram-from-native. Point `MODEL_HOST` at the **Abliterated** dest (not stock `./model`):
+
+```bash
+cd DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks
+# .env
+# MODEL_HOST=/home/you/models/DeepSeek-V4.1-Flash-EXL3-2.9bpw-Abliterated
+# ENGRAM_DIR still the native shards 47+48 as in their README
+./start.sh
+```
+
+Wrapper: `recipes/apply-mia-exl3.sh`. Engram stays native (untouched). L0–9 / L36–39 / MTP `wo_b` stay stock EXL3.

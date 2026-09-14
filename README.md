@@ -40,7 +40,7 @@ Current-serve knobs: `TP=4, GMU 0.80, max-model-len 1048576, max-num-seqs 8, CUD
 | Native | [`deepseek-ai/DeepSeek-V4.1-Flash`](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash) |
 | EXL3 3.5 bpw Pollard | [`bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard`](https://huggingface.co/bot-lab-21/DeepSeek-V4.1-Flash-EXL3-3.5bpw-Pollard) |
 | Our TR3-Hybrid | [`drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid`](https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid) |
-| Mia 2× Spark EXL3 2.9 bpw | [kit](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks) / [`Mia-AiLab/…-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw) — **overlay does not apply** (attn is EXL3 K=5); use Pollard 3.5 bpw instead |
+| Mia 2× Spark EXL3 2.9 bpw | [kit](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks) / [`Mia-AiLab/…-2.9bpw`](https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw) — recipe **D**, EXL3 K=5 sidecar (not FP8) |
 
 ## Headline
 
